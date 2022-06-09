@@ -1,0 +1,42 @@
+{
+	"name": "jojo",
+	"tree": {
+		"$className": "DataModel",
+		"$ignoreUnknownInstances": true,
+
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"$ignoreUnknownInstances": true,
+
+			"Source": {
+				"$className": "Folder",
+				"$path": "src/ReplicatedStorage"
+			}
+		},
+
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+			"$ignoreUnknownInstances": true,
+
+			"Source": {
+				"$className": "Folder",
+				"$path": "src/ServerScriptService"
+			}
+		},
+
+		"StarterPlayer": {
+			"$className": "StarterPlayer",
+			"$ignoreUnknownInstances": true,
+
+			"StarterPlayerScripts": {
+				"$className": "StarterPlayerScripts",
+				"$ignoreUnknownInstances": true,
+
+				"Source": {
+					"$className": "Folder",
+					"$path": "src/StarterPlayerScripts"
+				}
+			}
+		}
+	}
+}
