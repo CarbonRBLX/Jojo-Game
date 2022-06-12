@@ -1,40 +1,28 @@
-local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Promise = require(ReplicatedStorage.Source.Modules.Promise)
 local Walmart = require(ServerScriptService.Source.Modules.Walmart)
 
-local CustomerData = {}
+local BetaStore = Walmart.OpenStore("BetaStore")
 
-function CustomerData.CustomerEntered(customer)
-    local profile = CustomerData.BetaStore:GetCustomerProfile(customer)
+BetaStore:HireWorker("preSave", function(profile)
+    print("Someone's leaving with " .. profile.Money .. " money.")
+end)
+
+local function CustomerEndedAsync(customer)
+    local profile = BetaStore:GetCustomerProfile(customer)
 
     print(string.format("Customer %s entered with %s money.", customer.Name, profile.Money))
 end
 
-function CustomerData:Start()
-    local BetaStore = Walmart.OpenStore("BetaStore")
-
-    BetaStore:HireWorker("preSave", function(profile, customer)
-        if not customer then
-            print(profile)
-            return
-        end
-
-        print(customer.Name .. " pre-save")
-    end)
-
-    BetaStore:HireWorker("postSave", function(profile, customer)
-        if not customer then
-            print(profile)
-            return
-        end
-
-        print(customer.Name .. " post-save")
-    end)
-
-    CustomerData.BetaStore = BetaStore
-    Walmart.EnsureCustomers(CustomerData.CustomerEntered) --// ensure customers are loaded
-    Walmart.CustomerEntered:Connect(CustomerData.CustomerEntered)
+local function CustomerEntered(customer)
+    Promise.async(function(resolve)
+        resolve(CustomerEndedAsync(customer))
+    end):catch(warn)
 end
 
-return CustomerData
+return function()
+    Walmart.EnsureCustomers(CustomerEntered)
+    Walmart.CustomerEntered:Connect(CustomerEntered)
+end
