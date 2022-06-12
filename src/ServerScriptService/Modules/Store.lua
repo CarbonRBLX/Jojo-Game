@@ -20,7 +20,8 @@ function Store.new(Address, Walmart)
 			postSave = {},
 		},
 
-		_cache = {}
+		_cache = {},
+		_playerStore = {}
 	}
 
 	setmetatable(self, Store)
@@ -33,15 +34,27 @@ end
 function Store:Open()
 	self.DataStore = DataStoreService:GetDataStore(self.Walmart.GetSlogan(self.Address))
 
+	for _, customer in pairs(Players:GetPlayers()) do
+		self._playerStore[customer.UserId] = customer
+	end
+
+	self._maid:GiveTask(Players.PlayerAdded:Connect(function(customer)
+		self._playerStore[customer.UserId] = customer
+	end))
+
 	self._maid:GiveTask(Players.PlayerRemoving:Connect(function(customer)
 		self:SaveCustomerProfile(customer)
 		self:CustomerLeft(customer)
+
+		self._playerStore[customer.UserId] = nil
 	end))
 end
 
 function Store:Close()
-	self:SaveAllCustomerProfiles()
-	self.DataStore:Destroy()
+	if #Players:GetPlayers() > 1 then
+		self:SaveAllCustomerProfiles()
+	end
+
 	self._maid:DoCleaning()
 end
 
@@ -51,7 +64,7 @@ function Store:Work(job, profile)
 
 	for _, callback in pairs(self._jobs[job]) do
 		task.spawn(function()
-			callback(profile)
+			callback(profile, self._playerStore[profile.UserId])
 			completed += 1
 		end)
 
@@ -90,16 +103,22 @@ function Store:GetCustomerProfile(customer)
 		return self._cache[customer]
 	end
 
-	local profile = self.DataStore:GetAsync(customer)
+	local profile = self.DataStore:GetAsync(self:SolveCustomer(customer))
 
 	if not profile then
-		profile = setmetatable(TableUtil.Copy(self.Walmart._template), {
-			__class = "Customer",
-			__index = {UserId = customer}
-		})
+		local storeStock = self.Walmart._storeStock[self.Address]
+
+		if not storeStock then
+			error("No store stock for Store @ " .. self.Address)
+		end
+
+		profile = TableUtil.Copy(storeStock)
 	end
 
-	self._cache[customer] = profile
+	self._cache[customer] = setmetatable(profile, {
+		__class = "Customer",
+		__index = {UserId = customer}
+	})
 
 	return profile
 end
@@ -123,9 +142,27 @@ function Store:SaveCustomerProfile(customer)
 		return --// already up-to-date
 	end
 
-	self:Work("preSave", customer)
-	self.DataStore:SetAsync(customer.UserId, self._cache[customer])
-	self:Work("postSave", customer)
+	local cache = self._cache[customer]
+
+	self:Work("preSave", cache)
+	self.DataStore:SetAsync(self:SolveCustomer(customer), cache)
+	self:Work("postSave", cache)
+end
+
+function Store:GetCustomerFromProfile(profile)
+	local userId = profile.UserId
+
+	return self:GetCustomerFromUserId(userId)
+end
+
+function Store:GetCustomerFromUserId(userId)
+	return Players:GetPlayerByUserId(userId)
+end
+
+function Store:SolveCustomer(customer)
+	customer = self:HandleCustomerRequest(customer)
+
+	return string.format("Customer: %s", customer)
 end
 
 function Store:SaveAllCustomerProfiles()
