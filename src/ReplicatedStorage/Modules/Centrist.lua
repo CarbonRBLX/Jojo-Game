@@ -31,7 +31,7 @@ function Centrist.ConnectRemoteClient(RemoteName, Callback)
     local Remote = Centrist._remotes.fired[RemoteName]
 
     if Remote and Callback then
-        Remote.OnClientEvent:Connect(Callback)
+        return Remote.OnClientEvent:Connect(Callback)
     end
 end
 

@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 
 local Maid = require(ReplicatedStorage.Source.Modules.Maid)
+local Promise = require(ReplicatedStorage.Source.Modules.Promise)
 local TableUtil = require(ReplicatedStorage.Source.Modules.TableUtil)
 
 local Store = {}
@@ -144,9 +145,18 @@ function Store:SaveCustomerProfile(customer)
 
 	local cache = self._cache[customer]
 
-	self:Work("preSave", cache)
-	self.DataStore:SetAsync(self:SolveCustomer(customer), cache)
-	self:Work("postSave", cache)
+	Promise.new(function(resolve)
+		self:Work("preSave", cache)
+		self.DataStore:SetAsync(self:SolveCustomer(customer), cache)
+		self:Work("postSave", cache)
+
+		resolve(true)
+	end):catch(function(err)
+		warn("Error saving customer profile for Store @ " .. self.Address .. ": " .. err)
+		warn("Trying again...")
+
+		self:SaveCustomerProfile(customer)
+	end)
 end
 
 function Store:GetCustomerFromProfile(profile)

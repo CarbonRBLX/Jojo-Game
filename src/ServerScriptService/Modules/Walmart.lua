@@ -4,6 +4,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 
 local Store = require(ServerScriptService.Source.Modules.Store)
 local Signal = require(ReplicatedStorage.Source.Modules.Signal)
+local Centrist = require(ReplicatedStorage.Source.Modules.Centrist)
 
 local Walmart = {
 	ShuttingDown = false,
@@ -31,6 +32,16 @@ function Walmart.Start()
 
 	Players.PlayerRemoving:Connect(function(...)
 		Walmart.CustomerLeft:Fire(...)
+	end)
+
+	Centrist.ConnectRemote("getProfile", function(customer, storeName)
+		local store = Walmart._stores[storeName]
+
+		if store then
+			return store:GetCustomerProfile(customer)
+		end
+
+		--// dont punish for passing in an invalid store. it's whatever.
 	end)
 end
 
