@@ -5,19 +5,22 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Centrist = require(ReplicatedStorage.Source.Modules.Centrist)
 
 local Nectar = {
-    _profile = nil
+    _profiles = {},
+    _default = Centrist._shared.Stores.PlayerData,
 }
 
-function Nectar.Start(storeName)
-    Nectar._profile = Centrist.FireRemote("getProfile", storeName)
+function Nectar.Start()
+    for _, storeName in pairs(Centrist._shared.Stores) do
+        Nectar._profiles[storeName] = Centrist.FireRemote("getProfile", storeName)
+    end
 
-    Centrist.ConnectRemote("updateProfile", function(profile)
-        Nectar._profile = profile
+    Centrist.ConnectRemote("getProfile", function(updatedStore, profile)
+        Nectar._profiles[updatedStore] = profile
     end)
 end
 
-function Nectar.GetProfile()
-    return Nectar._profile
+function Nectar.GetProfile(storeName)
+    return Nectar._profiles[storeName or Nectar._default]
 end
 
 return Nectar

@@ -2,9 +2,10 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Promise = require(ReplicatedStorage.Source.Modules.Promise)
+local Centrist = require(ReplicatedStorage.Source.Modules.Centrist)
 local Walmart = require(ServerScriptService.Source.Modules.Walmart)
 
-local BetaStore = Walmart.OpenStore("BetaStore")
+local BetaStore = Walmart.OpenStore(Centrist._shared.StoreName)
 
 BetaStore:HireWorker("preSave", function(profile)
     print("Someone's leaving with " .. profile.Money .. " money.")

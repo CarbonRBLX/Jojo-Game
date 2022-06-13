@@ -4,6 +4,7 @@ local DataStoreService = game:GetService("DataStoreService")
 
 local Maid = require(ReplicatedStorage.Source.Modules.Maid)
 local Promise = require(ReplicatedStorage.Source.Modules.Promise)
+local Centrist = require(ReplicatedStorage.Source.Modules.Centrist)
 local TableUtil = require(ReplicatedStorage.Source.Modules.TableUtil)
 
 local Store = {}
@@ -134,6 +135,11 @@ function Store:UpdateCustomerProfile(customer, updatedElements)
 	customer = self:HandleCustomerRequest(customer)
 
 	self._cache[customer] = TableUtil.Reconcile(self:GetCustomerProfile(customer), updatedElements)
+
+	local player = self._playerStore[customer]
+	if player then
+		Centrist.FireRemote("getProfile", player, self.Address, self._cache[customer])
+	end
 end
 
 function Store:SaveCustomerProfile(customer)
@@ -157,16 +163,6 @@ function Store:SaveCustomerProfile(customer)
 
 		self:SaveCustomerProfile(customer)
 	end)
-end
-
-function Store:GetCustomerFromProfile(profile)
-	local userId = profile.UserId
-
-	return self:GetCustomerFromUserId(userId)
-end
-
-function Store:GetCustomerFromUserId(userId)
-	return Players:GetPlayerByUserId(userId)
 end
 
 function Store:SolveCustomer(customer)
