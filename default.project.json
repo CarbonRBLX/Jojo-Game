@@ -8,6 +8,11 @@
 			"$className": "ReplicatedStorage",
 			"$ignoreUnknownInstances": true,
 
+			"Packages": {
+				"$className": "Folder",
+				"$path": "Packages"
+			},
+
 			"Source": {
 				"$className": "Folder",
 				"$path": "src/ReplicatedStorage"
@@ -21,6 +26,16 @@
 			"Source": {
 				"$className": "Folder",
 				"$path": "src/ServerScriptService"
+			}
+		},
+
+		"ServerStorage": {
+			"$className": "ServerStorage",
+			"$ignoreUnknownInstances": true,
+
+			"Source": {
+				"$className": "Folder",
+				"$path": "src/ServerStorage"
 			}
 		},
 
