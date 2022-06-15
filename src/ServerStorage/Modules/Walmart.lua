@@ -1,8 +1,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
 
-local Store = require(ServerScriptService.Source.Modules.Store)
+local Store = require(ServerStorage.Source.Modules.Store)
 local Signal = require(ReplicatedStorage.Source.Modules.Signal)
 
 local Walmart = {
@@ -67,9 +67,9 @@ function Walmart.CloseStore(Address)
 	end
 end
 
-function Walmart.EnsureCustomers(Handler)
+function Walmart.EnsureCustomers(Handler, ...)
 	for _, Customer in pairs(Players:GetPlayers()) do
-		task.spawn(Handler, Customer)
+		task.spawn(Handler, ..., Customer)
 	end
 end
 

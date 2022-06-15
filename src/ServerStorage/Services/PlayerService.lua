@@ -9,18 +9,25 @@ local Promise = require(ReplicatedStorage.Source.Modules.Promise)
 local PlayerService = Knit.CreateService({
     Name = "PlayerService",
     Client = {},
+
+    _stores = {}
 })
 
-local function CustomerEnteredAsync(store, customer)
+local function CustomerEnteredAsync(customer)
+    local store = PlayerService:GetStore("PlayerData")
     local profile = store:GetCustomerProfile(customer)
 
-    print(string.format("Customer %s entered with %s money.", customer.Name, profile.Money))
+    print(string.format("Customer %s entered with %s money.", customer.DisplayName, profile.Money))
 end
 
-local function CustomerEntered(store, customer)
+local function CustomerEntered(customer)
     Promise.async(function(resolve)
-        resolve(CustomerEnteredAsync(store, customer))
+        resolve(CustomerEnteredAsync(customer))
     end):catch(warn)
+end
+
+function PlayerService:GetStore(name)
+    return self._stores[name]
 end
 
 function PlayerService:KnitStart()
@@ -31,6 +38,8 @@ function PlayerService:KnitStart()
     store:HireWorker("preSave", function(profile)
         print("Someone's leaving with " .. profile.Money .. " money.")
     end)
+
+    self._stores.PlayerData = store
 
     Walmart.EnsureCustomers(CustomerEntered)
     Walmart.CustomerEntered:Connect(CustomerEntered)

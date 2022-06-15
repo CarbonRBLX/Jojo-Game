@@ -8,9 +8,12 @@ local Helper = {
 
 function Helper.WeldAbilityToCharacter(character, ability)
     local weld = Instance.new("Weld")
-    weld.Parent = ability
+
     weld.Part0 = ability.PrimaryPart
     weld.Part1 = character.PrimaryPart
+    weld.Parent = ability
+
+    return weld
 end
 
 function Helper.SetAbilityTransparency(ability, transparency)

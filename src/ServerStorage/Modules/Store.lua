@@ -144,7 +144,17 @@ function Store:UpdateCustomerProfile(customer, updatedElements)
 	end
 end
 
-function Store:SaveCustomerProfile(customer)
+function Store:SaveCustomerProfile(customer, tries)
+	tries = tries or 1
+
+	if tries >= 3 then
+		warn("Failed to save player data after 3 tries.")
+
+		--// TODO: Log important data to a discord channel / web server so we can recover player data.
+
+		return
+	end
+
 	customer = self:HandleCustomerRequest(customer)
 
 	if not self._cache[customer] then
@@ -163,7 +173,7 @@ function Store:SaveCustomerProfile(customer)
 		warn("Error saving customer profile for Store @ " .. self.Address .. ": " .. err)
 		warn("Trying again...")
 
-		self:SaveCustomerProfile(customer)
+		self:SaveCustomerProfile(customer, tries + 1)
 	end)
 end
 
