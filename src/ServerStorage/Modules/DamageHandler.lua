@@ -5,8 +5,8 @@ local HttpService = game:GetService("HttpService")
 
 local PING_LENIENCE = 0.2 --// 200 ms
 
-local MoveDatabase = require(ReplicatedStorage.Source.Modules.Moves.MoveDatabase)
 local DamageSolver = require(ServerStorage.Source.Modules.DamageSolver)
+local MoveDatabase = require(ReplicatedStorage.Source.Modules.Abilities.Moves.MoveDatabase)
 
 local DamageHandler = {_whitelisted = {}}
 
@@ -101,11 +101,6 @@ function DamageHandler.Check(character, uuid, humanoid, baseDamage)
             player:Kick()
         end
 
-        return false
-    end
-
-    if tick() - info.Time > moveInfo.Length then
-        DamageHandler.Blacklist(character, uuid)
         return false
     end
 
