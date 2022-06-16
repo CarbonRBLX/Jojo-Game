@@ -1,10 +1,15 @@
 local ServerStorage = game:GetService("ServerStorage")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
 
+local Helper = require(ServerStorage.Source.Modules.Helper)
 local Walmart = require(ServerStorage.Source.Modules.Walmart)
 local Promise = require(ReplicatedStorage.Source.Modules.Promise)
+
+local ONE_DAY = 24 * 60 * 60
+local NEW_PROFILE_DAILY_LOGIN = true
 
 local PlayerService = Knit.CreateService({
     Name = "PlayerService",
@@ -13,17 +18,51 @@ local PlayerService = Knit.CreateService({
     _stores = {}
 })
 
+local function CustomerSpawned(character)
+    local customer = Players:GetPlayerFromCharacter(character)
+
+    local store = PlayerService:GetStore("PlayerData")
+    local profile = store:GetCustomerProfile(customer)
+
+    repeat
+        task.wait()
+    until character.Parent == workspace
+
+    character.Parent = workspace.Entities
+    character:SetAttribute("Ability", profile.Ability)
+
+    Helper.CreateAbilityForPlayer(profile.Ability, character)
+end
+
 local function CustomerEnteredAsync(customer)
     local store = PlayerService:GetStore("PlayerData")
     local profile = store:GetCustomerProfile(customer)
 
-    print(string.format("Customer %s entered with %s money.", customer.DisplayName, profile.Money))
+    local now = os.time()
+    local offset = if NEW_PROFILE_DAILY_LOGIN then ONE_DAY else 0
+
+    local lastDailyLogin = profile.LastDailyLogin or profile.LastLogin or (now - offset)
+
+    if now - lastDailyLogin >= ONE_DAY then
+        profile.LastDailyLogin = now
+
+        profile.Money += 100
+    end
+
+    profile.LastLogin = now
+
+    store:UpdateCustomerProfile(customer, profile)
 end
 
 local function CustomerEntered(customer)
     Promise.async(function(resolve)
         resolve(CustomerEnteredAsync(customer))
     end):catch(warn)
+
+    local character = customer.Character or customer.CharacterAdded:Wait()
+
+    CustomerSpawned(character)
+    customer.CharacterAdded:Connect(CustomerSpawned)
 end
 
 function PlayerService:GetStore(name)

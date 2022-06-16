@@ -10,7 +10,7 @@ dependencies = []
 [[package]]
 name = "malakai/jojo-game"
 version = "0.1.0"
-dependencies = [["Concur", "sleitnick/concur@0.1.0"], ["Input", "sleitnick/input@2.1.0"], ["Knit", "sleitnick/knit@1.4.7"]]
+dependencies = [["Concur", "sleitnick/concur@0.1.0"], ["Input", "sleitnick/input@2.1.0"], ["Knit", "sleitnick/knit@1.4.7"], ["TableUtil", "sleitnick/table-util@1.1.4"]]
 
 [[package]]
 name = "sleitnick/comm"
@@ -40,6 +40,11 @@ dependencies = []
 [[package]]
 name = "sleitnick/signal"
 version = "1.2.0"
+dependencies = []
+
+[[package]]
+name = "sleitnick/table-util"
+version = "1.1.4"
 dependencies = []
 
 [[package]]

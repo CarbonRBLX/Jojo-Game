@@ -15,15 +15,17 @@ local Walmart = {
 	_stores = {},
 
 	--// (default template)
-	_storeStock = {
-		BetaStore = {
-			Money = 0,
+	_templateStores = {
+		PlayerData = {
+			LocalVersion = 2.5,
+			StoreIdentifier = "BetaStore",
+
+			CustomerProfile = {
+				Money = 0,
+				Ability = "None"
+			}
 		}
 	},
-
-	_catalog = {
-		PlayerData = "BetaStore",
-	}
 }
 
 function Walmart.Start()
@@ -49,7 +51,13 @@ function Walmart.Stop()
 end
 
 function Walmart.GetSlogan(Address)
-	return string.format("%s>%s", Address, Walmart._version)
+	local template = Walmart._getTemplateFromAddress(Address)
+
+	if not template then
+		return
+	end
+
+	return string.format("%s.%s>%s", Address, template.LocalVersion, Walmart._version)
 end
 
 function Walmart.OpenStore(Address)
@@ -75,6 +83,14 @@ end
 
 function Walmart.GetStore(Address)
 	return Walmart._stores[Address]
+end
+
+function Walmart._getTemplateFromAddress(address)
+	for _, template in pairs(Walmart._templateStores) do
+		if template.StoreIdentifier == address then
+			return template
+		end
+	end
 end
 
 return Walmart

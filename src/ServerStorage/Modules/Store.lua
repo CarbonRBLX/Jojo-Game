@@ -3,10 +3,10 @@ local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 
 local Knit = require(ReplicatedStorage.Packages.Knit)
+local TableUtil = require(ReplicatedStorage.Packages.TableUtil)
 
 local Maid = require(ReplicatedStorage.Source.Modules.Maid)
 local Promise = require(ReplicatedStorage.Source.Modules.Promise)
-local TableUtil = require(ReplicatedStorage.Source.Modules.TableUtil)
 
 local Store = {}
 Store.__class = "Store"
@@ -107,23 +107,24 @@ function Store:GetCustomerProfile(customer)
 	end
 
 	local profile = self.DataStore:GetAsync(self:SolveCustomer(customer))
+	local template = self.Walmart._getTemplateFromAddress(self.Address).CustomerProfile
+
+	if not template then
+		error("No store stock for Store @ " .. self.Address)
+	end
 
 	if not profile then
-		local storeStock = self.Walmart._storeStock[self.Address]
-
-		if not storeStock then
-			error("No store stock for Store @ " .. self.Address)
-		end
-
-		profile = TableUtil.Copy(storeStock)
+		profile = TableUtil.Copy(template)
 	end
+
+	TableUtil.Reconcile(profile, TableUtil.Copy(template))
 
 	self._cache[customer] = setmetatable(profile, {
 		__class = "Customer",
 		__index = {UserId = customer}
 	})
 
-	return profile
+	return self._cache[customer]
 end
 
 function Store:CustomerLeft(customer)
@@ -147,15 +148,15 @@ end
 function Store:SaveCustomerProfile(customer, tries)
 	tries = tries or 1
 
+	customer = self:HandleCustomerRequest(customer)
+
 	if tries >= 3 then
-		warn("Failed to save player data after 3 tries.")
+		warn(string.format("Failed to save customer profile for [%s] after 3 tries..", customer))
 
 		--// TODO: Log important data to a discord channel / web server so we can recover player data.
 
 		return
 	end
-
-	customer = self:HandleCustomerRequest(customer)
 
 	if not self._cache[customer] then
 		return --// already up-to-date
